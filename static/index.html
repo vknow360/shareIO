@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>📤 shareIO – Upload & List</title>
+    <link rel="icon" type="image/png" href="/static/icon.png" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --success: #2ecc71;
+            --success-dark: #27ae60;
+            --warning: #e67e22;
+            --warning-dark: #d35400;
+            --bg: #f2f2f2;
+            --text: #2c3e50;
+            --text-dark: #19232c;
+            --border: #ddd;
+            --gray: #777;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .upload-container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 24px;
+            color: white;
+            background-color: var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .custom-file-upload:active {
+            background-color: var(--primary-dark);
+        }
+
+        #file-name {
+            margin: 12px 0;
+            font-size: 14px;
+            color: var(--gray);
+            word-break: break-word;
+        }
+
+        button {
+            display: inline-block;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button[type="submit"] {
+            background-color: var(--success);
+            color: white;
+        }
+
+        button[type="submit"]:active {
+            background-color: var(--success-dark);
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        #reload-btn {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        #reload-btn:active {
+            background-color: var(--warning-dark);
+        }
+
+        #delete-all-btn {
+            background-color: var(--text);
+            color: white;
+        }
+
+        #delete-all-btn:active {
+            background-color: var(--text-dark);
+        }
+
+        .file-list {
+            margin-top: 30px;
+            max-height: 350px;
+            overflow-y: scroll;
+            padding: 5px;
+        }
+
+        .file-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .file-item {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            transition: box-shadow 0.2s;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-item:hover {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .file-name {
+            max-width: 50%;
+            font-size: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: row;
+            gap: 4px;
+        }
+
+        .actions a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+
+            height: 38px;
+            line-height: 1;
+        }
+
+        .actions a:first-child {
+            background: var(--primary);
+        }
+
+        .actions a:last-child {
+            background: var(--gray);
+        }
+
+        .expired {
+            text-decoration: line-through;
+            color: gray;
+        }
+
+        @media (max-width: 768px) {
+            .upload-container {
+                padding: 20px;
+            }
+
+
+            .file-name {
+                max-width: 100%;
+                white-space: normal;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            button, .custom-file-upload {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .upload-container {
+                padding: 16px;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .file-name {
+                font-size: 14px;
+            }
+
+            .actions a {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+<div class="upload-container">
+    <h2>📁 shareIO</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="file" class="custom-file-upload">📂 Choose File</label>
+        <input type="file" name="file" id="file" required />
+        <div id="file-name">No file selected</div>
+        <button type="submit">⬆️ Upload</button>
+    </form>
+
+    <div class="list-actions">
+        <button id="reload-btn">🔁 Reload List</button>
+        <button id="delete-all-btn">🗑️ Delete All</button>
+    </div>
+
+    <div class="file-list" id="fileList">
+
+    </div>
+
+
+</div>
+
+<script>
+    const fileInput = document.getElementById("file");
+    const fileNameDisplay = document.getElementById("file-name");
+    const uploadForm = document.getElementById("uploadForm");
+    const fileList = document.getElementById("fileList");
+    const reloadBtn = document.getElementById("reload-btn");
+    const deleteAllBtn = document.getElementById("delete-all-btn");
+
+    fileInput.addEventListener("change", function () {
+        fileNameDisplay.textContent = fileInput.files.length > 0
+            ? fileInput.files[0].name
+            : "No file selected";
+    });
+
+    uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(uploadForm);
+        const res = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+        });
+
+        fileInput.value = "";
+        fileNameDisplay.textContent = "No file selected";
+
+        if (res.status !== 200) {
+            const err = await res.json();
+            alert(err.message);
+        } else {
+            infoMessage("✅ File uploaded");
+            await loadFiles();
+        }
+    });
+
+    async function loadFiles() {
+        const res = await fetch("/files");
+        const files = await res.json();
+        fileList.innerHTML = "";
+
+        files.files.forEach(file => {
+            const row = document.createElement("div");
+            row.className = "file-item";
+
+            row.innerHTML = `
+          <div class="file-name">${file}</div>
+          <div class="actions">
+            <a href="/download/${file}" target="_self">⬇️</a>
+            <a href="#" class="delete-btn" data-file=${file}>🗑️</a>
+          </div>
+        `;
+
+            fileList.appendChild(row);
+        });
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const filename = btn.getAttribute("data-file");
+                if (confirm(`Delete file "${filename}"?`)) {
+                    const res = await fetch(`/files/${encodeURIComponent(filename)}`, { method: "DELETE" });
+                    if (res.status === 200) {
+                        infoMessage("🗑️ File deleted");
+                        await loadFiles();
+                    } else {
+                        errorMessage("❌ Delete failed");
+                    }
+                }
+            });
+        });
+    }
+
+    reloadBtn.addEventListener("click", () => {
+        loadFiles();
+    });
+
+    deleteAllBtn.addEventListener("click" , async () => {
+        const res = await fetch(`/files`, { method: "DELETE" });
+
+        if (res.status === 200) {
+            infoMessage("Files deleted");
+            await loadFiles();
+        } else {
+            console.log(await res.json())
+            errorMessage("Delete failed");
+        }
+    })
+
+    loadFiles();
+
+    function errorMessage(msg){
+        Toastify({
+            text: msg,
+            class: "error",
+            duration: 1000,
+            close: false,
+            gravity: "top", // `top` or `bottom`
+            position: "right", // `left`, `center` or `right`
+            stopOnFocus: true, // Prevents dismissing of toast on hover
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
+    }
+    function infoMessage(msg){
+        Toastify({
+            text: msg,
+            class: "info",
+            duration: 1000,
+            close: false,
+            gravity: "top", // `top` or `bottom`
+            position: "right", // `left`, `center` or `right`
+            stopOnFocus: true, // Prevents dismissing of toast on hover
+            style: {
+                background: "linear-gradient(to right, #00b09b, #96c93d)",
+            },
+            onClick: function(){} // Callback after click
+        }).showToast();
+    }
+</script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+</body>
+</html>
