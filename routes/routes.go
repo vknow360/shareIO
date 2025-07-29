@@ -1,20 +1,21 @@
 package routes
 
 import (
+	"net/http"
+	"path/filepath"
+
 	"github.com/gin-gonic/gin"
 	"github.com/vknow360/shareIO/handlers"
 	"github.com/vknow360/shareIO/utils"
-	"net/http"
-	"path/filepath"
 )
 
 func RegisterRoutes() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	r.LoadHTMLGlob("static/*.html")
 	r.Static("/static/", "static")
 
-	//TODO: register routes
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})
 	})
