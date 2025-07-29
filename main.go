@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
 	"os"
@@ -13,8 +14,14 @@ import (
 
 const (
 	version   = "1.0.0"
-	buildDate = "unknown"
+	buildDate = "2025/07/29"
 )
+
+//go:embed static/*.html
+var staticTemplates embed.FS
+
+//go:embed static/*
+var staticFiles embed.FS
 
 func main() {
 
@@ -73,7 +80,7 @@ func main() {
 	}
 	fmt.Println("\nPress Ctrl+C to stop the server")
 
-	r := routes.RegisterRoutes()
+	r := routes.RegisterRoutes(staticTemplates, staticFiles)
 
 	err := r.Run(fmt.Sprintf("%s:%s", *bind, *port))
 

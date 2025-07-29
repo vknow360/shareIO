@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/vknow360/shareIO/utils"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/gin-gonic/gin"
+	"github.com/vknow360/shareIO/utils"
 )
 
 func isDir(path string) bool {
@@ -47,6 +49,12 @@ func GetFilesList(c *gin.Context) {
 
 func DeleteFile(c *gin.Context) {
 	file := c.Param("filename")
+	//decode uri component
+	file, err := url.PathUnescape(file)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file name"})
+		return
+	}
 	dst := utils.GetUploadDir()
 	filePath := filepath.Join(dst, file)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -64,10 +72,33 @@ func DeleteFile(c *gin.Context) {
 
 func DeleteAllFiles(c *gin.Context) {
 	dst := utils.GetUploadDir()
-	err := os.RemoveAll(dst)
+	files, err := os.ReadDir(dst)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to delete files: " + err.Error()})
+		if os.IsNotExist(err) {
+			c.JSON(http.StatusOK, gin.H{"message": "No files to delete"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to read directory: " + err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+
+	var errors []string
+	for _, file := range files {
+		if !file.IsDir() {
+			filePath := filepath.Join(dst, file.Name())
+			if err := os.Remove(filePath); err != nil {
+				errors = append(errors, fmt.Sprintf("Failed to delete %s: %v", file.Name(), err))
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		c.JSON(http.StatusPartialContent, gin.H{
+			"message": "Some files could not be deleted",
+			"errors":  errors,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "All files deleted successfully"})
 }

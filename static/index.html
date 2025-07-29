@@ -304,7 +304,7 @@
           <div class="file-name">${file}</div>
           <div class="actions">
             <a href="/download/${file}" target="_self">⬇️</a>
-            <a href="#" class="delete-btn" data-file=${file}>🗑️</a>
+            <a href="#" class="delete-btn" data-file=${encodeURIComponent(file)}>🗑️</a>
           </div>
         `;
 
@@ -313,7 +313,7 @@
         document.querySelectorAll(".delete-btn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const filename = btn.getAttribute("data-file");
-                if (confirm(`Delete file "${filename}"?`)) {
+                if (confirm(`Delete file "${decodeURIComponent(filename)}" ?`)) {
                     const res = await fetch(`/files/${encodeURIComponent(filename)}`, { method: "DELETE" });
                     if (res.status === 200) {
                         infoMessage("🗑️ File deleted");
@@ -347,7 +347,7 @@
     function errorMessage(msg){
         Toastify({
             text: msg,
-            class: "error",
+            className: "warning",
             duration: 1000,
             close: false,
             gravity: "top", // `top` or `bottom`
@@ -362,7 +362,7 @@
     function infoMessage(msg){
         Toastify({
             text: msg,
-            class: "info",
+            className: "info",
             duration: 1000,
             close: false,
             gravity: "top", // `top` or `bottom`
