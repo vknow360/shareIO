@@ -2,6 +2,9 @@
 
 shareIO is a lightweight, cross-platform file sharing server designed for quick and easy file transfers between devices on the same local network. Perfect for offline environments where you need to share files between computers, phones, tablets, and other devices without internet connectivity.
 
+<img width="1918" height="912" alt="image" src="https://github.com/user-attachments/assets/915b84ab-1ce2-4a14-982b-d87f639fc676" />
+
+
 ## Features
 
 - 🚀 **Zero Configuration** - Just run and share
